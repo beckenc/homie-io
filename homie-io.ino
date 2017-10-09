@@ -4,37 +4,24 @@
 
 //#define _DEBUG
 
-static HomieSetting<long> publishIntervalSetting("publishInterval", "publish interval in seconds");
 static HomieSetting<bool> deepSleepSetting("deepSleep", "ESP deep sleep mode");
-static std::vector<Input*> inputs;
+static HomieSetting<long> publishIntervalSetting("publishInterval", "publish interval in seconds");
 
 static void setupHandler() {
   Homie.getLogger() << "homie-io - " << __DATE__ << " - " << __TIME__ << endl;
-  for (std::vector<Input*>::iterator input = inputs.begin() ; input != inputs.end(); ++input) {
-    (*input)->setup();
-  }
 }
 
 static void loopHandler() {
-  const bool deepSleep = deepSleepSetting.get();
-  const long publishInterval = publishIntervalSetting.get();
-
-  for (std::vector<Input*>::iterator input = inputs.begin() ; input != inputs.end(); ++input) {
-    if ((*input)->update() || ((millis() - (*input)->lastPublish()) > (publishInterval * 1000UL)) ) {
-      (*input)->publish();
-    }
-  }
-
-  if (deepSleep) {
+  if (deepSleepSetting.get()) {
     // publishing successful. Go into deep sleep.
 #ifndef _DEBUG
-    Homie.getLogger() << "Preparing for deep sleep (" << publishInterval << " seconds)" << endl;
+    Homie.getLogger() << "Preparing for deep sleep (" << publishIntervalSetting.get() << " seconds)" << endl;
     Homie.prepareToSleep();
 #endif
   }
 }
 
-void onHomieEvent(const HomieEvent & event) {
+static void onHomieEvent(const HomieEvent & event) {
   switch (event.type) {
     case HomieEventType::READY_TO_SLEEP:
       Homie.getLogger() << "Ready to sleep" << endl;
@@ -63,10 +50,10 @@ void setup() {
   });
 
   // todo take the config from a HomieSettings Object
-  inputs.push_back(new Input(D1, "in[0]"));
-  inputs.push_back(new Input(D2, "in[1]"));
-  inputs.push_back(new Input(D6, "in[2]"));
-  inputs.push_back(new Input(D7, "in[3]"));
+  new Input(publishIntervalSetting, D1, "in[0]");
+  new Input(publishIntervalSetting, D2, "in[1]");
+  new Input(publishIntervalSetting, D6, "in[2]");
+  new Input(publishIntervalSetting, D7, "in[3]");
 
   Homie.setup();
 }

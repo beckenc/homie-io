@@ -5,23 +5,27 @@
 
 class Input : HomieNode {
   public:
-    Input(int input, const char* id);
+    Input(HomieSetting<long> &pubInterval, int inputPin, const char* id);
     virtual ~Input();
 
     void setup();
-    bool update();
+    void onReadyToOperate();
+    void loop();
     bool publish();
-    unsigned long lastPublish() const;
 
   private:
+    Bounce debouncer;
+    HomieSetting<long> &publishInterval;
     const int pin;
     unsigned long publishTimeStamp;
-    Bounce debouncer;
 };
 
-inline Input::Input(int input, const char* id)
+inline Input::Input(HomieSetting<long> &pubInterval, int inputPin, const char* id)
   : HomieNode(id, "input")
-  , pin(input) {
+  , publishInterval(pubInterval)
+  , debouncer()
+  , pin(inputPin)
+  , publishTimeStamp(0) {
   pinMode(pin, INPUT_PULLUP);
 }
 
@@ -31,23 +35,23 @@ inline Input::~Input() {
 inline void Input::setup() {
   debouncer.attach(pin);
   debouncer.interval(100);
+  debouncer.update();
   advertise("state");
-  update();
+}
+
+inline void Input::onReadyToOperate() {
   publish();
 }
 
-inline bool Input::update() {
-  // return true if the state has changed and false if not
-  return debouncer.update();
+inline void Input::loop() {
+  if (debouncer.update() || ((millis() - publishTimeStamp) > (publishInterval.get() * 1000UL)) ) {
+    publish();
+  }
 }
 
 bool Input::publish() {
   publishTimeStamp = millis();
   return setProperty("state").setRetained(true).send(String(debouncer.read())) != 0;
-}
-
-unsigned long Input::lastPublish() const {
-  return publishTimeStamp;
 }
 
 #endif
