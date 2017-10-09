@@ -1,0 +1,23 @@
+{
+  "name": "homie-io",
+  "device_id": "homie-io",
+  "wifi": {
+    "ssid": "foobar",
+    "password": "1223456789"
+  },
+  "mqtt": {
+    "host": "raspberrypi",
+    "port": 1883,
+    "base_topic": "homie/",
+    "auth": false,
+    "username": "user",
+    "password": "pass"
+  },
+  "ota": {
+    "enabled": true
+  },
+ "settings":{
+    "publishInterval":300,
+    "deepSleep":false
+  }
+}
