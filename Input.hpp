@@ -1,53 +1,51 @@
 #ifndef _INPUT_NODE
 #define _INPUT_NODE
 
+#include <Bounce2.h>
+
 class Input : HomieNode {
   public:
     Input(int input, const char* id);
     virtual ~Input();
 
-    struct state {
-      unsigned long millis;
-      bool state;
-    };
-
     void setup();
-    state current() const;
-    state last() const;
+    bool update();
     bool publish();
- 
- private:
-    int pin;
-    state lastState;
+    unsigned long lastPublish() const;
+
+  private:
+    const int pin;
+    unsigned long publishTimeStamp;
+    Bounce debouncer;
 };
 
 inline Input::Input(int input, const char* id)
   : HomieNode(id, "input")
   , pin(input) {
   pinMode(pin, INPUT_PULLUP);
-  lastState.state = digitalRead(pin) == 0;
-  lastState.millis = 0;
 }
 
 inline Input::~Input() {
 }
 
 inline void Input::setup() {
+  debouncer.attach(pin);
+  debouncer.interval(100);
   advertise("state");
 }
 
-Input::state Input::current() const {
-  return { millis(), digitalRead(pin) == 0 };
-}
-
-Input::state Input::last() const {
-  return lastState;
+inline bool Input::update() {
+  // return true if the state has changed and false if not
+  return debouncer.update();
 }
 
 bool Input::publish() {
-  lastState.state = digitalRead(pin) == 0;
-  lastState.millis = millis();
-  return setProperty("state").setRetained(true).send(String(lastState.state)) != 0;
+  publishTimeStamp = millis();
+  return setProperty("state").setRetained(true).send(String(debouncer.read())) != 0;
+}
+
+unsigned long Input::lastPublish() const {
+  return publishTimeStamp;
 }
 
 #endif
