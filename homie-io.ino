@@ -2,7 +2,7 @@
 #include <vector>
 #include "Input.hpp"
 
-#define _DEBUG
+//#define _DEBUG
 
 static HomieSetting<long> publishIntervalSetting("publishInterval", "publish interval in seconds");
 static HomieSetting<bool> deepSleepSetting("deepSleep", "ESP deep sleep mode");
@@ -20,7 +20,7 @@ static void loopHandler() {
   const long publishInterval = publishIntervalSetting.get();
 
   for (std::vector<Input*>::iterator input = inputs.begin() ; input != inputs.end(); ++input) {
-    if ((*input)->update() || ((millis() - (*input)->lastPublish()) > publishInterval) ) {
+    if ((*input)->update() || ((millis() - (*input)->lastPublish()) > (publishInterval * 1000UL)) ) {
       (*input)->publish();
     }
   }

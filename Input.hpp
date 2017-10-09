@@ -32,6 +32,8 @@ inline void Input::setup() {
   debouncer.attach(pin);
   debouncer.interval(100);
   advertise("state");
+  update();
+  publish();
 }
 
 inline bool Input::update() {
