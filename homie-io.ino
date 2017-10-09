@@ -18,13 +18,10 @@ static void setupHandler() {
 static void loopHandler() {
   const bool deepSleep = deepSleepSetting.get();
   const long publishInterval = publishIntervalSetting.get();
-  bool published = true;
 
   for (std::vector<Input*>::iterator input = inputs.begin() ; input != inputs.end(); ++input) {
-    Input::state last = (*input)->last();
-    Input::state current = (*input)->current();
-    if (((current.millis - last.millis) >= (publishInterval * 1000UL)) || (last.state != current.state || (last.millis == 0)) ) {
-      published &= (*input)->publish();
+    if ((*input)->update() || ((millis() - (*input)->lastPublish()) > publishInterval) ) {
+      (*input)->publish();
     }
   }
 
