@@ -50,10 +50,10 @@ void setup() {
   });
 
   // todo take the config from a HomieSettings Object
-  new Input(publishIntervalSetting, D1, "in[0]");
-  new Input(publishIntervalSetting, D2, "in[1]");
-  new Input(publishIntervalSetting, D6, "in[2]");
-  new Input(publishIntervalSetting, D7, "in[3]");
+  new Input(publishIntervalSetting, D1, "in-0");
+  new Input(publishIntervalSetting, D2, "in-1");
+  new Input(publishIntervalSetting, D6, "in-2");
+  new Input(publishIntervalSetting, D7, "in-3");
 
   Homie.setup();
 }

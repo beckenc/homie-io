@@ -3,7 +3,7 @@
   "device_id": "homie-io",
   "wifi": {
     "ssid": "foobar",
-    "password": "1223456789"
+    "password": "123456789"
   },
   "mqtt": {
     "host": "raspberrypi",
@@ -18,6 +18,10 @@
   },
  "settings":{
     "publishInterval":300,
-    "deepSleep":false
+    "deepSleep":false,
+    "alias-in-0":"in-0",
+    "alias-in-1":"in-1",
+    "alias-in-2":"in-2",
+    "alias-in-3":"in-3"
   }
 }
