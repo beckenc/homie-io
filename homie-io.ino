@@ -38,7 +38,7 @@ void setup() {
   Serial.begin(115200);
   Serial << endl << endl;
 
-  Homie_setFirmware("homie-io", "0.0.1");
+  Homie_setFirmware("homie-io", "0.0.2");
   Homie_setBrand("homie-io");
   Homie.setSetupFunction(setupHandler).setLoopFunction(loopHandler).onEvent(onHomieEvent);
   Homie.disableLedFeedback();
