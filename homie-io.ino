@@ -6,27 +6,52 @@
 
 static HomieSetting<bool> deepSleepSetting("deepSleep", "ESP deep sleep mode");
 static HomieSetting<long> publishIntervalSetting("publishInterval", "publish interval in seconds");
+static unsigned long awakeTillMillis = 0;
 
 static void setupHandler() {
   Homie.getLogger() << "homie-io - " << __DATE__ << " - " << __TIME__ << endl;
 }
 
+bool broadcastHandler(const String& level, const String& value) {
+  if(level == "wakeup") {
+    long awakeTillSec = value.toInt();
+    if(0 != awakeTillSec) {
+      awakeTillMillis = millis() + (awakeTillSec * 1000UL);
+      Homie.getLogger() << "awake for the next " << awakeTillSec << " seconds" << endl;
+    }
+    return true;
+  }
+  return false;
+}
+
 static void loopHandler() {
   if (deepSleepSetting.get()) {
-    // publishing successful. Go into deep sleep.
+    if(millis() >= awakeTillMillis) {
+      // publishing successful. Go into deep sleep.
 #ifndef _DEBUG
-    Homie.getLogger() << "Preparing for deep sleep (" << publishIntervalSetting.get() << " seconds)" << endl;
-    Homie.prepareToSleep();
+      static bool prepared = false;
+      if(!prepared) {
+        prepared = true;
+        Homie.getLogger() << "Preparing for deep sleep (" << publishIntervalSetting.get() << " seconds)" << endl;
+        Homie.prepareToSleep();
+      }
 #endif
+    }
   }
 }
 
-static void onHomieEvent(const HomieEvent & event) {
+void onHomieEvent(const HomieEvent& event) {
+  static bool readyToSleep = false;
   switch (event.type) {
     case HomieEventType::READY_TO_SLEEP:
-      Homie.getLogger() << "Ready to sleep" << endl;
-      // convert to microseconds
-      ESP.deepSleep(publishIntervalSetting.get() * 1000000);
+      WiFi.disconnect();    // Calling doDeepSleep() at this point sometimes causes exceptions due to asynchronous arrival 
+                            // of WIFI_DISCONNECTED. WDT wakes up the Device immediatly after the exception. So deep sleep does not work.
+                            // To work around this, I decided to inherit this task to the WIFI_DISCONNECTED event.
+      readyToSleep = true;
+      break;
+    case HomieEventType::WIFI_DISCONNECTED:
+      if(readyToSleep)
+        Homie.doDeepSleep(publishIntervalSetting.get() * 1000000);
       break;
   }
 }
@@ -42,7 +67,7 @@ void setup() {
   Homie_setBrand("homie-io");
   Homie.setSetupFunction(setupHandler).setLoopFunction(loopHandler).onEvent(onHomieEvent);
   Homie.disableLedFeedback();
-  Homie.disableResetTrigger();
+  /* Homie.disableResetTrigger(); */ // disabled to support $implementation/reset -> true
 
   deepSleepSetting.setDefaultValue(false);
   publishIntervalSetting.setDefaultValue(300UL).setValidator([] (long candidate) {
