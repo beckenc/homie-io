@@ -65,7 +65,7 @@ void setup() {
 
   Homie_setFirmware("homie-io", "0.0.2");
   Homie_setBrand("homie-io");
-  Homie.setSetupFunction(setupHandler).setLoopFunction(loopHandler).onEvent(onHomieEvent);
+  Homie.setSetupFunction(setupHandler).setBroadcastHandler(broadcastHandler).setLoopFunction(loopHandler).onEvent(onHomieEvent);
   Homie.disableLedFeedback();
   /* Homie.disableResetTrigger(); */ // disabled to support $implementation/reset -> true
 
