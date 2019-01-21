@@ -24,7 +24,7 @@ class Input : HomieNode {
 
 inline Input::Input(HomieSetting<long> &pubInterval, int inputPin, const char* id)
   : HomieNode(id, "input")
-  , alias(String("alias-") + id)
+  , alias(String("alias_") + id)
   , debouncer()
   , publishInterval(pubInterval)
   , aliasSetting(alias.c_str(), "Alias of the device_id")
